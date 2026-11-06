@@ -1,0 +1,16 @@
+{
+  "config_version": 2,
+  "window_title_regex": "DeepSeek Harness|Codex",
+  "composer_name_prefix": "发消息或创建任务",
+  "click_rel_x": 0.53,
+  "click_rel_y": 0.78,
+  "hotkey": "Ctrl+Alt+P",
+  "hotkey_restore": "Ctrl+Alt+Shift+P",
+  "api_base_url": "https://api.deepseek.com",
+  "model": "deepseek-flash",
+  "temperature": 0.4,
+  "timeout_seconds": 60,
+  "max_input_chars": 12000,
+  "always_on_top": true,
+  "debug_log": false
+}
