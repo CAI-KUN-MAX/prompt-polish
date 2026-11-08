@@ -42,8 +42,8 @@ class PromptPolishApp:
         self.pinned = bool(self.cfg.always_on_top)
 
         root.title(APP_TITLE)
-        root.geometry("500x520")
-        root.minsize(460, 440)
+        root.geometry("540x620")
+        root.minsize(480, 520)
         root.attributes("-topmost", self.pinned)
         root.protocol("WM_DELETE_WINDOW", self._on_close)
 
@@ -57,81 +57,100 @@ class PromptPolishApp:
     def _build_ui(self) -> None:
         style = ttk.Style()
         try:
-            style.theme_use("vista")
+            style.theme_use("clam")
         except tk.TclError:
             pass
-        outer = ttk.Frame(self.root, padding=10)
+        self.root.configure(background="#f3f5f9")
+        style.configure("App.TFrame", background="#f3f5f9")
+        style.configure("Card.TFrame", background="#ffffff")
+        style.configure("Title.TLabel", background="#f3f5f9", foreground="#17223b", font=("Microsoft YaHei UI", 16, "bold"))
+        style.configure("Subtitle.TLabel", background="#f3f5f9", foreground="#66738b", font=("Microsoft YaHei UI", 9))
+        style.configure("Section.TLabel", background="#f3f5f9", foreground="#273751", font=("Microsoft YaHei UI", 10, "bold"))
+        style.configure("Meta.TLabel", background="#f3f5f9", foreground="#64748b", font=("Microsoft YaHei UI", 9))
+        style.configure("Status.TLabel", background="#e8efff", foreground="#2855a2", padding=(10, 8), font=("Microsoft YaHei UI", 9))
+        style.configure("Action.TButton", padding=(12, 7), font=("Microsoft YaHei UI", 9))
+        style.configure("Primary.TButton", padding=(14, 8), font=("Microsoft YaHei UI", 10, "bold"), background="#315eea", foreground="#ffffff", borderwidth=0)
+        style.map("Primary.TButton", background=[("disabled", "#aebcdd"), ("active", "#234ac7")], foreground=[("disabled", "#f4f6fc")])
+        style.configure("App.TCheckbutton", background="#f3f5f9", foreground="#475569", font=("Microsoft YaHei UI", 9))
+        style.map("App.TCheckbutton", background=[("active", "#f3f5f9")])
+        outer = ttk.Frame(self.root, padding=(16, 14), style="App.TFrame")
         outer.pack(fill="both", expand=True)
 
+        header = ttk.Frame(outer, style="App.TFrame")
+        header.pack(fill="x", pady=(0, 10))
+        ttk.Label(header, text="PromptPolish", style="Title.TLabel").pack(anchor="w")
+        ttk.Label(header, text="把想法整理成清晰、可执行的提示词", style="Subtitle.TLabel").pack(anchor="w", pady=(2, 0))
+
         self.target_var = tk.StringVar(value="目标：正在查找 DeepSeek Harness 窗口…")
-        target = ttk.Label(outer, textvariable=self.target_var, foreground="#666666", wraplength=430)
-        target.pack(fill="x", anchor="w")
+        target = ttk.Label(outer, textvariable=self.target_var, style="Meta.TLabel", wraplength=440)
+        target.pack(fill="x", anchor="w", pady=(0, 6))
 
         self.status_var = tk.StringVar(value="就绪")
-        self.status_label = ttk.Label(outer, textvariable=self.status_var, foreground="#1a5fb4", wraplength=430)
-        self.status_label.pack(fill="x", anchor="w", pady=(4, 6))
+        self.status_label = ttk.Label(outer, textvariable=self.status_var, style="Status.TLabel", wraplength=440)
+        self.status_label.pack(fill="x", anchor="w", pady=(0, 12))
 
-        text_frame = ttk.Frame(outer)
+        ttk.Label(outer, text="优化结果", style="Section.TLabel").pack(anchor="w", pady=(0, 6))
+
+        text_frame = ttk.Frame(outer, style="Card.TFrame", padding=1)
         text_frame.pack(fill="both", expand=True)
         self.result = tk.Text(
             text_frame,
-            height=11,
+            height=3,
             wrap="word",
             font=("Microsoft YaHei UI", 10),
-            relief="solid",
-            borderwidth=1,
-            background="#fbfbfd",
-            foreground="#222222",
+            relief="flat",
+            borderwidth=0,
+            background="#ffffff",
+            foreground="#24324a",
             state="disabled",
-            padx=6,
-            pady=4,
+            padx=12,
+            pady=10,
         )
         scroll = ttk.Scrollbar(text_frame, orient="vertical", command=self.result.yview)
         self.result.configure(yscrollcommand=scroll.set)
         self.result.pack(side="left", fill="both", expand=True)
         scroll.pack(side="right", fill="y")
 
-        refine_row = ttk.Frame(outer)
-        refine_row.pack(fill="x", pady=(8, 0))
-        ttk.Label(refine_row, text="继续调整：").pack(side="left")
+        ttk.Label(outer, text="继续调整", style="Section.TLabel").pack(anchor="w", pady=(12, 5))
+        refine_row = ttk.Frame(outer, style="App.TFrame")
+        refine_row.pack(fill="x")
         self.refine_var = tk.StringVar()
         self.refine_entry = ttk.Entry(refine_row, textvariable=self.refine_var)
         self.refine_entry.pack(side="left", fill="x", expand=True, padx=(4, 6))
         self.refine_entry.bind("<Return>", lambda _e: self.on_refine())
-        self.refine_btn = ttk.Button(refine_row, text="按此调整", command=self.on_refine, state="disabled")
+        self.refine_btn = ttk.Button(refine_row, text="调整", command=self.on_refine, state="disabled", style="Action.TButton")
         self.refine_btn.pack(side="left")
 
-        row = ttk.Frame(outer)
-        row.pack(fill="x", pady=(8, 0))
-        self.optimize_btn = ttk.Button(row, text="优化提示词", command=self.on_optimize)
+        row = ttk.Frame(outer, style="App.TFrame")
+        row.pack(fill="x", pady=(12, 0))
+        self.optimize_btn = ttk.Button(row, text="优化提示词", command=self.on_optimize, style="Primary.TButton")
         self.optimize_btn.pack(side="left")
-        self.restore_btn = ttk.Button(row, text="恢复原文", command=self.on_restore, state="disabled")
+        self.restore_btn = ttk.Button(row, text="恢复原文", command=self.on_restore, state="disabled", style="Action.TButton")
         self.restore_btn.pack(side="left", padx=(6, 0))
-        self.copy_btn = ttk.Button(row, text="复制结果", command=self.on_copy, state="disabled")
+        self.copy_btn = ttk.Button(row, text="复制结果", command=self.on_copy, state="disabled", style="Action.TButton")
         self.copy_btn.pack(side="left", padx=(6, 0))
 
-        row2 = ttk.Frame(outer)
-        row2.pack(fill="x", pady=(6, 0))
-        ttk.Button(row2, text="校准输入框", command=self.on_calibrate).pack(side="left")
-        ttk.Button(row2, text="设置", command=self.open_settings).pack(side="left", padx=(6, 0))
+        row2 = ttk.Frame(outer, style="App.TFrame")
+        row2.pack(fill="x", pady=(10, 0))
+        ttk.Button(row2, text="校准输入框", command=self.on_calibrate, style="Action.TButton").pack(side="left")
+        ttk.Button(row2, text="设置", command=self.open_settings, style="Action.TButton").pack(side="left", padx=(6, 0))
         self.pin_var = tk.BooleanVar(value=self.pinned)
         self.pin_btn = ttk.Checkbutton(
-            row2, text="固定在最前", variable=self.pin_var, command=self.on_toggle_pin
+            row2, text="固定在最前", variable=self.pin_var, command=self.on_toggle_pin, style="App.TCheckbutton"
         )
         self.pin_btn.pack(side="left", padx=(6, 0))
 
         self.hotkey_var = tk.StringVar(value=self._hotkey_text())
-        ttk.Label(outer, textvariable=self.hotkey_var, foreground="#666666", wraplength=460).pack(
-            fill="x", anchor="w", pady=(4, 0)
+        ttk.Label(outer, textvariable=self.hotkey_var, style="Meta.TLabel", wraplength=440).pack(
+            fill="x", anchor="w", pady=(9, 0)
         )
 
         self._show_text(
-            "使用说明\n"
-            "1. 在 DeepSeek Harness 输入框中写好提示词。\n"
-            "2. 点击「优化提示词」或按快捷键。\n"
-            "3. 工具会校验草稿未被修改后回填，不会自动发送。\n"
-            "4. 结果不满意，可在「继续调整」里输入要求并回车。\n"
-            "5. 首次使用请点击「校准输入框」，或先在设置里配置 API Key。"
+            "准备开始\n\n"
+            "在聊天输入框中写下你的想法，然后点击「优化提示词」。\n\n"
+            "优化结果会显示在这里。支持安全回填的输入框会自动填入结果，"
+            "否则可以手动复制；工具不会自动发送。\n\n"
+            "首次使用？请先在「设置」中配置 API Key，并校准输入框。"
         )
 
     def _hotkey_text(self) -> str:
@@ -162,7 +181,7 @@ class PromptPolishApp:
 
     def _set_status(self, text: str, error: bool = False) -> None:
         self.status_var.set(text)
-        self.status_label.configure(foreground="#b3261e" if error else "#1a5fb4")
+        self.status_label.configure(foreground="#a12c2c" if error else "#2855a2", background="#fcecec" if error else "#e8efff")
 
     # ---------------- events ----------------
     def _post(self, kind: str, payload=None) -> None:
@@ -249,6 +268,7 @@ class PromptPolishApp:
 
     def _set_busy(self, busy: bool) -> None:
         self.busy = busy
+        self.optimize_btn.configure(text="处理中…" if busy else "优化提示词")
         self.optimize_btn.configure(state="disabled" if busy else "normal")
         self._set_refine_enabled((not busy) and self.applied)
         # While operating, drop topmost so the floating window cannot cover the
