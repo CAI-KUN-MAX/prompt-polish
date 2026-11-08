@@ -384,10 +384,8 @@ class PromptPolishApp:
                     {"role": "assistant", "content": result.text},
                 ]
                 self._post("applied", (draft, result.text, self._usage_text(result)))
-            elif applied.code in ("draft_changed", "chat_changed", "special", "write_failed"):
-                self._post("manual", (result.text, applied.message))
             else:
-                self._post("error", applied.message + "；原文未改动。")
+                self._post("manual", (result.text, applied.message))
         except llm.LLMError as exc:
             self._post("error", exc.message + "；原文未改动。")
         except Exception as exc:  # pragma: no cover - defensive
@@ -469,10 +467,8 @@ class PromptPolishApp:
             if applied.ok:
                 self.messages = messages + [{"role": "assistant", "content": result.text}]
                 self._post("refined", (result.text, self._usage_text(result)))
-            elif applied.code in ("draft_changed", "chat_changed", "special", "write_failed"):
-                self._post("manual", (result.text, applied.message))
             else:
-                self._post("error", applied.message + "；原文未改动。")
+                self._post("manual", (result.text, applied.message))
         except llm.LLMError as exc:
             self._post("error", exc.message + "；草稿未改动。")
         except Exception as exc:  # pragma: no cover - defensive
@@ -514,7 +510,7 @@ class PromptPolishApp:
             elif res.code == "draft_changed":
                 self._post("error", "草稿在优化后已被修改，未自动恢复。原文已显示，可手动复制。\n\n" + self.original)
             else:
-                self._post("error", res.message + "；原文未恢复。")
+                self._post("error", res.message + "；请检查输入框中的内容。")
         except Exception as exc:  # pragma: no cover
             self._log_exception("restore", exc)
             self._post("error", f"恢复失败：{exc}")

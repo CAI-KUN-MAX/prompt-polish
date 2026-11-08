@@ -16,14 +16,15 @@ param(
     [double]$RelX = 0.53,
     [double]$RelY = 0.78,
     [string]$ComposerPrefix = '',
-    [string]$ExpectedTitle = '',
-    [string]$ExpectedDraft = '',
-    [string]$NewText = ''
+    [string]$ExpectedTitle = ''
 )
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
+$inputPayload = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$ExpectedDraft = [string]$inputPayload.expected_draft
+$NewText = [string]$inputPayload.new_text
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -320,7 +321,7 @@ try {
             message = 'composer has attachments or special references'; special = $special
         })
     }
-    if ($current -ne $ExpectedDraft) {
+    if ($current -cne $ExpectedDraft) {
         Write-Result ([ordered]@{
             ok = $false; action = 'apply'; code = 'draft_changed'
             message = 'draft changed while optimizing'; length = $current.Length
@@ -341,58 +342,29 @@ try {
         Fail 'focus_failed' 'focus left the composer before writing'
     }
 
-    $oldClip = $null
-    try { $oldClip = Get-Clipboard -Raw -ErrorAction Stop } catch { $oldClip = $null }
-
-    $ok = $false
-    try {
-        for ($attempt = 0; $attempt -lt 2; $attempt++) {
-            if (-not (Set-Clipboard-Retry $NewText)) { break }
-            try { $composer.SetFocus() } catch { }
-            Start-Sleep -Milliseconds 180
-            [PP]::Ctrl(0x41) | Out-Null
-            Start-Sleep -Milliseconds 90
-            [PP]::Ctrl(0x56) | Out-Null
-            for ($i = 0; $i -lt 16; $i++) {
-                Start-Sleep -Milliseconds 180
-                if ((Get-Value $composer) -eq $expected) { $ok = $true; break }
-            }
-            if ($ok) { break }
-        }
-    } finally {
-        if ($null -ne $oldClip) {
-            try { Set-Clipboard -Value $oldClip -ErrorAction SilentlyContinue } catch { }
-        }
+    # Address the identified control directly; do not use global keystrokes
+    # or the clipboard, which can affect another window or overwrite data.
+    $vp = $null
+    if (-not $composer.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$vp) -or $vp.Current.IsReadOnly) {
+        Fail 'write_unsupported' 'composer does not expose a writable ValuePattern'
     }
-
-    if (-not $ok) {
-        $rollbackOk = $false
-        if ($ExpectedDraft -ne '') {
-            try {
-                if (Set-Clipboard-Retry $ExpectedDraft) {
-                    try { $composer.SetFocus() } catch { }
-                    Start-Sleep -Milliseconds 150
-                    [PP]::Ctrl(0x41) | Out-Null
-                    Start-Sleep -Milliseconds 80
-                    [PP]::Ctrl(0x56) | Out-Null
-                    for ($i = 0; $i -lt 10; $i++) {
-                        Start-Sleep -Milliseconds 150
-                        if ((Get-Value $composer) -eq (Normalize $ExpectedDraft)) { $rollbackOk = $true; break }
-                    }
-                }
-            } finally {
-                if ($null -ne $oldClip) {
-                    try { Set-Clipboard -Value $oldClip -ErrorAction SilentlyContinue } catch { }
-                }
-            }
+    if ([PP]::GetForegroundWindow() -ne $h -or -not (Test-Focused $composer)) {
+        Fail 'focus_failed' 'focus left the target before writing'
+    }
+    if ($ExpectedTitle -ne '' -and (Get-Title $h) -cne $ExpectedTitle) {
+        Fail 'chat_changed' 'chat changed before writing'
+    }
+    if ((Get-Value $composer) -cne (Normalize $ExpectedDraft) -or @(Get-Special $composer).Count -gt 0) {
+        Fail 'draft_changed' 'draft changed before writing'
+    }
+    try {
+        $vp.SetValue($NewText)
+        Start-Sleep -Milliseconds 250
+        if ((Get-Value $composer) -cne $expected) {
+            Fail 'write_failed' 'could not verify written value'
         }
-        $now = Get-Value $composer
-        $nowLen = -1
-        if ($null -ne $now) { $nowLen = $now.Length }
-        Write-Result ([ordered]@{
-            ok = $false; action = 'apply'; code = 'write_failed'
-            message = 'verification after paste failed'; rollback = $rollbackOk; length = $nowLen
-        })
+    } catch {
+        Fail 'write_failed' 'write status unknown'
     }
 
     Write-Result ([ordered]@{

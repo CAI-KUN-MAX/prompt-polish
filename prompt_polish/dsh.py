@@ -24,8 +24,9 @@ MESSAGES = {
     "special": "输入区含附件或特殊引用，已停止自动回填",
     "draft_changed": "草稿在优化期间发生变化，已停止自动回填",
     "empty_result": "优化结果为空，已停止",
-    "write_failed": "写入后校验不一致，已尝试恢复原文",
-    "timeout": "输入框操作超时，原文未改动",
+    "write_failed": "写入结果无法确认，请检查目标输入框",
+    "write_unsupported": "输入框不支持安全自动回填",
+    "timeout": "输入框操作超时",
     "bridge_missing": "缺少自动化桥脚本",
     "bridge_error": "自动化桥执行失败",
     "exception": "自动化桥执行异常",
@@ -57,10 +58,11 @@ def _powershell() -> str:
     return os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
 
 
-def _run(args: list[str], timeout: float) -> tuple[int, str, str]:
+def _run(args: list[str], timeout: float, input_text: str | None = None) -> tuple[int, str, str]:
     flags = CREATE_NO_WINDOW if os.name == "nt" else 0
     proc = subprocess.run(
         args,
+        input=input_text,
         capture_output=True,
         timeout=timeout,
         creationflags=flags,
@@ -114,15 +116,12 @@ def call(
     ]
     if expected_title:
         args += ["-ExpectedTitle", expected_title]
-    if expected_draft:
-        args += ["-ExpectedDraft", expected_draft]
-    if new_text:
-        args += ["-NewText", new_text]
-
     try:
-        code, out, err = _run(args, timeout)
+        payload = json.dumps({"expected_draft": expected_draft, "new_text": new_text}, ensure_ascii=True)
+        code, out, err = _run(args, timeout, payload)
     except subprocess.TimeoutExpired:
-        return BridgeResult(False, "timeout", "输入框操作超时，原文未改动")
+        message = "回填超时，写入状态未知，请检查目标输入框" if action == "apply" else "读取输入框超时，未进行回填"
+        return BridgeResult(False, "timeout", message)
     try:
         data = _parse(out)
     except ValueError:
