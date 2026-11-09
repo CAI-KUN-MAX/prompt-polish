@@ -5,6 +5,7 @@ import json
 import socket
 import urllib.error
 import urllib.request
+import urllib.parse
 from dataclasses import dataclass
 
 from .config import Config
@@ -16,6 +17,11 @@ class LLMError(RuntimeError):
         super().__init__(message)
         self.code = code
         self.message = message
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
 
 
 @dataclass
@@ -30,6 +36,16 @@ def endpoint(base_url: str) -> str:
     base = (base_url or "").strip().rstrip("/")
     if not base:
         raise LLMError("config", "API 地址为空")
+    try:
+        parsed = urllib.parse.urlsplit(base)
+        host = parsed.hostname
+        parsed.port  # Validate malformed and out-of-range ports.
+    except ValueError:
+        raise LLMError("config", "API 地址无效") from None
+    if not host or parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise LLMError("config", "API 地址无效")
+    if parsed.scheme != "https" and not (parsed.scheme == "http" and host in ("localhost", "127.0.0.1", "::1")):
+        raise LLMError("config", "API 地址必须使用 HTTPS（本机测试地址除外）")
     if base.endswith("/chat/completions"):
         return base
     if base.endswith("/v1"):
@@ -42,6 +58,8 @@ def _complete(messages: list[dict], cfg: Config, api_key: str) -> LLMResult:
         raise LLMError("no_key", "未配置 DeepSeek API Key")
     if not messages:
         raise LLMError("empty", "没有可发送的对话内容")
+    if sum(len(str(message.get("content", ""))) for message in messages) > max(100, int(cfg.max_input_chars)) * 4:
+        raise LLMError("too_long", "对话内容过长，请重新优化以开始新的会话")
     payload = {
         "model": cfg.model,
         "messages": messages,
@@ -61,16 +79,13 @@ def _complete(messages: list[dict], cfg: Config, api_key: str) -> LLMResult:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=max(1, int(cfg.timeout_seconds))) as resp:
-            raw = resp.read()
+        opener = urllib.request.build_opener(_NoRedirect())
+        with opener.open(req, timeout=max(1, int(cfg.timeout_seconds))) as resp:
+            raw = resp.read(2_000_001)
+        if len(raw) > 2_000_000:
+            raise LLMError("bad_response", "模型返回内容过大")
     except urllib.error.HTTPError as exc:
         code = exc.code
-        detail = ""
-        try:
-            data = json.loads(exc.read().decode("utf-8", "replace"))
-            detail = str((data.get("error") or {}).get("message") or "")[:200]
-        except Exception:
-            pass
         if code in (401, 403):
             raise LLMError("auth", "DeepSeek 鉴权失败（HTTP %d），请检查 API Key 是否有效" % code)
         if code == 402:
@@ -79,7 +94,7 @@ def _complete(messages: list[dict], cfg: Config, api_key: str) -> LLMResult:
             raise LLMError("rate_limit", "请求过于频繁或额度受限（HTTP 429），请稍后重试")
         if 500 <= code:
             raise LLMError("server", f"DeepSeek 服务暂时不可用（HTTP {code}），请稍后重试")
-        raise LLMError("http", f"模型请求失败（HTTP {code}）" + (f"：{detail}" if detail else ""))
+        raise LLMError("http", f"模型请求失败（HTTP {code}）")
     except (socket.timeout, TimeoutError):
         raise LLMError("timeout", f"模型请求超时（{cfg.timeout_seconds} 秒），原文未改动")
     except urllib.error.URLError as exc:
@@ -94,17 +109,23 @@ def _complete(messages: list[dict], cfg: Config, api_key: str) -> LLMResult:
         data = json.loads(raw.decode("utf-8"))
     except (ValueError, UnicodeDecodeError):
         raise LLMError("bad_response", "模型返回内容无法解析")
+    if not isinstance(data, dict):
+        raise LLMError("bad_response", "模型返回内容格式不正确")
     choices = data.get("choices") or []
-    if not choices:
+    if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
         raise LLMError("bad_response", "模型没有返回可用内容")
     message = choices[0].get("message") or {}
+    if not isinstance(message, dict):
+        raise LLMError("bad_response", "模型返回内容格式不正确")
     content = message.get("content")
     if not isinstance(content, str) or not content.strip():
         raise LLMError("bad_response", "模型返回了空内容")
     text = strip_code_fence(content)
     if not text.strip():
         raise LLMError("bad_response", "模型返回了空内容")
-    usage = data.get("usage") or {}
+    usage = data.get("usage")
+    if not isinstance(usage, dict):
+        usage = {}
     return LLMResult(
         text=text,
         model=str(data.get("model") or cfg.model),

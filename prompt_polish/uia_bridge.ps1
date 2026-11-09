@@ -16,14 +16,15 @@ param(
     [double]$RelX = 0.53,
     [double]$RelY = 0.78,
     [string]$ComposerPrefix = '',
-    [string]$ExpectedTitle = '',
-    [string]$ExpectedDraft = '',
-    [string]$NewText = ''
+    [string]$ExpectedTitle = ''
 )
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
+$inputPayload = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$ExpectedDraft = [string]$inputPayload.expected_draft
+$NewText = [string]$inputPayload.new_text
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -187,32 +188,40 @@ function Get-Composer($win) {
     return $null
 }
 
-function Get-Special($composer) {
+function Get-Special($composer, $win) {
+    # The UIA tree can be flattened: the composer's parent may be the whole
+    # window, so scanning it would flag sidebar/task-panel images and lists.
+    # Limit the scan to a band around the composer and require attachment-like
+    # class names; offscreen chat history is ignored.
     $reasons = New-Object System.Collections.Generic.List[string]
     try {
-        $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
-        $card = $walker.GetParent($composer)
-        if ($null -ne $card) {
-            $desc = $card.FindAll([System.Windows.Automation.TreeScope]::Descendants,
-                [System.Windows.Automation.Condition]::TrueCondition)
-            foreach ($e in $desc) {
-                try {
-                    $c = $e.Current.ClassName
-                    $t = $e.Current.ControlType.ProgrammaticName
-                    if ($t -eq 'ControlType.Image') {
-                        $reasons.Add('attachment_image') | Out-Null
-                    }
-                    elseif ($t -eq 'ControlType.List') {
-                        $reasons.Add('mention_popup') | Out-Null
-                    }
-                    elseif ($t -eq 'ControlType.Button' -and $c -match 'remove') {
-                        $reasons.Add('attachment_remove_button') | Out-Null
-                    }
-                    elseif ($c -match 'mention|reference|chip|attachment|thumbnail|rail') {
-                        $reasons.Add('reference_or_attachment_node') | Out-Null
-                    }
-                } catch { }
-            }
+        $cr = $composer.Current.BoundingRectangle
+        if ($cr.Width -le 0 -or $cr.Height -le 0) { return @() }
+        $minX = $cr.Left - 60
+        $maxX = $cr.Right + 60
+        $minY = $cr.Top - 140
+        $maxY = $cr.Bottom + 50
+        $desc = $win.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+            [System.Windows.Automation.Condition]::TrueCondition)
+        foreach ($e in $desc) {
+            try {
+                if ($e.Current.IsOffscreen) { continue }
+                $r = $e.Current.BoundingRectangle
+                if ($r.Width -le 0 -or $r.Height -le 0) { continue }
+                if ($r.Right -lt $minX -or $r.Left -gt $maxX) { continue }
+                if ($r.Bottom -lt $minY -or $r.Top -gt $maxY) { continue }
+                $c = $e.Current.ClassName
+                $t = $e.Current.ControlType.ProgrammaticName
+                if ($t -eq 'ControlType.Button' -and $c -match '(?i)remove') {
+                    $reasons.Add('attachment_remove_button') | Out-Null
+                }
+                elseif ($c -match '(?i)fileMention|attachment|thumbnail|reference') {
+                    $reasons.Add('reference_or_attachment_node') | Out-Null
+                }
+                elseif ($t -eq 'ControlType.List' -and $c -match '(?i)mention|suggest|menu|popup|completion') {
+                    $reasons.Add('mention_popup') | Out-Null
+                }
+            } catch { }
         }
     } catch { }
     return @($reasons | Select-Object -Unique)
@@ -304,7 +313,8 @@ try {
     if ($null -eq $current) {
         Fail 'unsupported' 'composer does not expose a readable value'
     }
-    $special = @(Get-Special $composer)
+    $win = [System.Windows.Automation.AutomationElement]::FromHandle($h)
+    $special = @(Get-Special $composer $win)
 
     if ($Action -eq 'read') {
         Write-Result ([ordered]@{
@@ -320,7 +330,7 @@ try {
             message = 'composer has attachments or special references'; special = $special
         })
     }
-    if ($current -ne $ExpectedDraft) {
+    if ($current -cne $ExpectedDraft) {
         Write-Result ([ordered]@{
             ok = $false; action = 'apply'; code = 'draft_changed'
             message = 'draft changed while optimizing'; length = $current.Length
@@ -355,7 +365,7 @@ try {
             [PP]::Ctrl(0x56) | Out-Null
             for ($i = 0; $i -lt 16; $i++) {
                 Start-Sleep -Milliseconds 180
-                if ((Get-Value $composer) -eq $expected) { $ok = $true; break }
+                if ((Get-Value $composer) -ceq $expected) { $ok = $true; break }
             }
             if ($ok) { break }
         }
@@ -377,7 +387,7 @@ try {
                     [PP]::Ctrl(0x56) | Out-Null
                     for ($i = 0; $i -lt 10; $i++) {
                         Start-Sleep -Milliseconds 150
-                        if ((Get-Value $composer) -eq (Normalize $ExpectedDraft)) { $rollbackOk = $true; break }
+                        if ((Get-Value $composer) -ceq (Normalize $ExpectedDraft)) { $rollbackOk = $true; break }
                     }
                 }
             } finally {

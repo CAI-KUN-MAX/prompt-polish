@@ -125,7 +125,7 @@ class LLMTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, "timeout")
 
     def test_network_error(self) -> None:
-        cfg = config.Config(api_base_url="http://nonexistent.invalid", timeout_seconds=3)
+        cfg = config.Config(api_base_url="https://nonexistent.invalid", timeout_seconds=3)
         with self.assertRaises(llm.LLMError) as ctx:
             llm.optimize("x", cfg, "sk-test")
         self.assertIn(ctx.exception.code, ("network", "timeout"))

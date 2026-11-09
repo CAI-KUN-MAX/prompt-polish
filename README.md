@@ -155,7 +155,7 @@ setx PROMPTPOLISH_KEY_FILE "D:\path\to\key.txt"
 | 字段 | 默认值 | 说明 |
 | --- | --- | --- |
 | `model` | `deepseek-flash` | 模型名 |
-| `api_base_url` | `https://api.deepseek.com` | OpenAI 兼容地址 |
+| `api_base_url` | `https://api.deepseek.com` | OpenAI 兼容地址（必须 HTTPS；本机回环地址允许 HTTP） |
 | `temperature` | `0.4` | 采样温度 |
 | `timeout_seconds` | `60` | 请求超时 |
 | `max_input_chars` | `12000` | 草稿字符上限 |
@@ -198,7 +198,7 @@ setx PROMPTPOLISH_KEY_FILE "D:\path\to\key.txt"
 ## 测试
 
 ```powershell
-# 25 个单元测试：规则、快捷键、配置迁移、多轮对话、API 错误映射
+# 32 个单元测试：规则、快捷键、配置迁移、多轮对话、API 错误映射、安全边界
 python -m unittest discover -s tests -t . -v
 
 # 7 个真实 GUI 场景：优化、继续调整、恢复、草稿变化、模型失败、附件、无密钥
@@ -230,6 +230,8 @@ python tests/e2e_pin.py
 - 只读取输入框当前的 `ValuePattern` 文本，不遍历聊天记录、不读项目文件。
 - 密钥不写入 `config.json`、不写日志、不出现在错误信息里。
 - 调试日志只有步骤、长度和错误码，不包含草稿正文或密钥。
+- 草稿通过标准输入传给 PowerShell 自动化桥，不出现在进程命令行中。
+- 模型 API 必须使用 HTTPS；只有本机回环地址允许 HTTP，便于本地测试。
 - 原文和优化结果仅保存在内存；回填后恢复文本剪贴板。
 - 不自动发送消息，不按 Enter。
 
@@ -264,7 +266,8 @@ prompt_polish/
   winapi.py                    Win32 窗口、DPI、全局热键
 tests/
   mock_llm.py                  本地 mock 模型
-  test_core.py                 25 个单元测试
+  test_core.py                 25 个基础单元测试
+  test_safety.py               7 个安全边界测试
   e2e_gui.py                   7 个真实 GUI 场景
   e2e_pin.py                   固定按钮实测
 install.ps1                    创建桌面快捷方式
