@@ -1,0 +1,26 @@
+{
+  "name": "dsh-plugin-prompt-polish",
+  "version": "0.1.0",
+  "description": "Icon-only prompt optimizer in the DeepSeek Harness composer, using the active session model and quota.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "README.md"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "license": "MIT"
+}

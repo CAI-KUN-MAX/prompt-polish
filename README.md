@@ -16,6 +16,10 @@ PromptPolish 会读取 DeepSeek Harness 当前输入框里的**纯文本草稿**
 
 > 这是个人开源项目，不是 DeepSeek 官方产品。当前只对 DeepSeek Harness 桌面版做过完整实测；
 > 没有验证过名为 “Codex” 的桌面应用。
+>
+> **原生插件版（推荐）**：`dsh-plugin-prompt-polish/` 把优化做成模型选择器左侧的图标按钮，
+> 直接使用当前会话的 DSH 模型与额度，不需要 API Key、不弹外部窗口。
+> 安装与限制见 [插件 README](dsh-plugin-prompt-polish/README.md)。
 
 ---
 
@@ -268,6 +272,8 @@ tests/
   e2e_gui.py                   7 个真实 GUI 场景
   e2e_pin.py                   固定按钮实测
 install.ps1                    创建桌面快捷方式
+install-dsh-plugin.ps1         安装 DSH 原生插件（需重启 DSH）
+dsh-plugin-prompt-polish/      DSH 插件：host 路由 + composer 图标
 config.example.json            配置示例
 docs/screenshot.png            README 截图
 ```
