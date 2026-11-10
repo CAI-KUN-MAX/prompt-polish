@@ -1,0 +1,5 @@
+# PromptPolish composer plugin bundle.
+# The host loads lib/index.js and registers /prompt-polish/optimize.
+- insert:
+    - id: prompt-polish
+      name: dsh-plugin-prompt-polish
