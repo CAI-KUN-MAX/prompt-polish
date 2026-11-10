@@ -1,25 +1,68 @@
 {
   "name": "dsh-plugin-prompt-polish",
   "version": "0.1.0",
-  "description": "Icon-only prompt optimizer in the DeepSeek Harness composer, using the active session model and quota.",
+  "description": "Icon-only prompt optimizer in the DeepSeek Harness composer, using the active session model and DSH quota.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
     "lib/index.js",
     "lib/client.js",
+    "cordis.patch.yml",
     "README.md"
   ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "prompt-engineering",
+    "composer",
+    "ui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CAI-KUN-MAX/prompt-polish.git",
+    "directory": "dsh-plugin-prompt-polish"
+  },
+  "homepage": "https://github.com/CAI-KUN-MAX/prompt-polish/tree/main/dsh-plugin-prompt-polish",
+  "bugs": {
+    "url": "https://github.com/CAI-KUN-MAX/prompt-polish/issues"
+  },
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "inject": [
         "@deepseek-ai/dsh-client-ui-conversation"
       ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-host-webserver": "*",
+    "@deepseek-ai/dsh-llm": "*",
+    "@deepseek-ai/dsh-session": "*",
+    "react": "^18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-host-webserver": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-session": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
     }
   },
   "license": "MIT"
