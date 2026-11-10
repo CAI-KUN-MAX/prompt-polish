@@ -9,6 +9,10 @@ DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左�
               提示词优化按钮
 ```
 
+![输入框中的优化按钮](assets/screenshot-1.png)
+
+![优化结果回填到输入框](assets/screenshot-2.png)
+
 ## 功能
 
 - **图标按钮**：注册在 composer 的 `conversation.input.right` 插槽，位于模型选择器左侧；只有图标，无文字。
@@ -33,6 +37,21 @@ DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左�
 ## 安装
 
 需要 DSH 桌面版和 Node.js（用于安装时的导入自检）。
+
+### 从 DSH 插件市场
+
+市场条目已提交：
+<https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/14055>
+
+审核合并后，可直接在 DSH 的「插件」面板里搜索 **PromptPolish** 安装。
+
+### 从 npm（发布后）
+
+```powershell
+dsh plugin --profile desktop add dsh-plugin-prompt-polish
+```
+
+### 从源码安装（当前可用）
 
 ```powershell
 cd <this-folder>
