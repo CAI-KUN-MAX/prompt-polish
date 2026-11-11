@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-prompt-polish",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Icon-only prompt optimizer in the DeepSeek Harness composer, using the active session model and DSH quota.",
   "type": "module",
   "main": "lib/index.js",
