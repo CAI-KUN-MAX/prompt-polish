@@ -59,10 +59,11 @@ dsh plugin --profile desktop add dsh-plugin-prompt-polish
 
 当前版本：`0.1.0`。
 
-### 从源码安装（当前可用）
+### 从源码安装
 
 ```powershell
-cd <this-folder>
+git clone https://github.com/CAI-KUN-MAX/prompt-polish.git
+cd prompt-polish
 powershell -ExecutionPolicy Bypass -File .\install-dsh-plugin.ps1
 ```
 
