@@ -40,12 +40,15 @@ DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左�
 
 ### 从 DSH 插件市场
 
-市场条目已提交：
-<https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/14055>
+已收录到 DSH 插件市场（PR #14055 已合并）：
 
-审核合并后，可直接在 DSH 的「插件」面板里搜索 **PromptPolish** 安装。
+<https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/CAI-KUN-MAX__prompt-polish--dsh-plugin-prompt-polish.yml>
+
+在 DSH 的「插件」面板里搜索 **PromptPolish** 或 **prompt-polish** 即可安装。
 
 ### 从 npm（发布后）
+
+包名已准备为 `dsh-plugin-prompt-polish`：
 
 ```powershell
 dsh plugin --profile desktop add dsh-plugin-prompt-polish

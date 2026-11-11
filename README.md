@@ -20,7 +20,7 @@ PromptPolish 会读取 DeepSeek Harness 当前输入框里的**纯文本草稿**
 > **原生插件版（推荐）**：`dsh-plugin-prompt-polish/` 把优化做成模型选择器左侧的图标按钮，
 > 直接使用当前会话的 DSH 模型与额度，不需要 API Key、不弹外部窗口。
 > 安装与限制见 [插件 README](dsh-plugin-prompt-polish/README.md)；
-> 市场收录 PR：[awesome-dsh-plugin#14055](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/14055)。
+> 市场已收录：[awesome-dsh-plugin 条目](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/CAI-KUN-MAX__prompt-polish--dsh-plugin-prompt-polish.yml)。
 
 ---
 
