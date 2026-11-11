@@ -20,7 +20,17 @@ PromptPolish 会读取 DeepSeek Harness 当前输入框里的**纯文本草稿**
 > **原生插件版（推荐）**：`dsh-plugin-prompt-polish/` 把优化做成模型选择器左侧的图标按钮，
 > 直接使用当前会话的 DSH 模型与额度，不需要 API Key、不弹外部窗口。
 > 安装与限制见 [插件 README](dsh-plugin-prompt-polish/README.md)；
-> 市场已收录：[awesome-dsh-plugin 条目](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/CAI-KUN-MAX__prompt-polish--dsh-plugin-prompt-polish.yml)。
+> 市场已收录：[awesome-dsh-plugin 条目](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/CAI-KUN-MAX__prompt-polish--dsh-plugin-prompt-polish.yml)；
+> npm：[dsh-plugin-prompt-polish](https://www.npmjs.com/package/dsh-plugin-prompt-polish)
+> （`dsh plugin --profile desktop add dsh-plugin-prompt-polish`）。
+
+## 两种形态
+
+- **DSH 原生插件（推荐）**：模型选择器左侧的 ✨ 图标，直接使用当前会话的 DSH 模型与额度，
+  不需要 API Key，不弹外部窗口。已收录到 DSH 插件市场，搜索 `PromptPolish` 安装；
+  源码与说明见 [插件 README](dsh-plugin-prompt-polish/README.md)。
+- **独立悬浮窗**：本 README 其余部分介绍的 Python 工具，适合不安装插件、或需要
+  多轮对话调整与「固定在最前」的场景。
 
 ---
 

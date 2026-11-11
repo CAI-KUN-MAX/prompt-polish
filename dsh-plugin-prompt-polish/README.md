@@ -1,5 +1,8 @@
 # dsh-plugin-prompt-polish
 
+[![DSH Marketplace](https://img.shields.io/badge/DSH%20Marketplace-listed-4C6FFF)](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/CAI-KUN-MAX__prompt-polish--dsh-plugin-prompt-polish.yml)
+[![npm](https://img.shields.io/npm/v/dsh-plugin-prompt-polish)](https://www.npmjs.com/package/dsh-plugin-prompt-polish)
+
 DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左侧一个小图标，点一下优化当前输入框草稿。
 不弹外部窗口、不复制粘贴、不需要 API Key —— 直接使用当前会话的 DSH 模型和额度。
 
@@ -46,13 +49,15 @@ DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左�
 
 在 DSH 的「插件」面板里搜索 **PromptPolish** 或 **prompt-polish** 即可安装。
 
-### 从 npm（发布后）
+### 从 npm
 
-包名已准备为 `dsh-plugin-prompt-polish`：
+已发布：<https://www.npmjs.com/package/dsh-plugin-prompt-polish>
 
 ```powershell
 dsh plugin --profile desktop add dsh-plugin-prompt-polish
 ```
+
+当前版本：`0.1.0`。
 
 ### 从源码安装（当前可用）
 
