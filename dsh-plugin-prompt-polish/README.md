@@ -1,5 +1,7 @@
 # dsh-plugin-prompt-polish
 
+[![DSH Marketplace](https://img.shields.io/badge/DSH%20Marketplace-listed-4C6FFF)](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/CAI-KUN-MAX__prompt-polish--dsh-plugin-prompt-polish.yml)
+
 DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左侧一个小图标，点一下优化当前输入框草稿。
 不弹外部窗口、不复制粘贴、不需要 API Key —— 直接使用当前会话的 DSH 模型和额度。
 
