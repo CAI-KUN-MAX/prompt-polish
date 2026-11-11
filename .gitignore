@@ -1,22 +1,6 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-
-# Environments
-.venv/
-venv/
-env/
-
-# Local runtime output
-artifacts/
+# Node / plugin
+node_modules/
 *.log
-
-# Secrets and local settings
-config.json
-api_key.txt
-.env
-.env.*
 
 # OS / editors
 .DS_Store
@@ -24,3 +8,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# Local test output
+artifacts/
