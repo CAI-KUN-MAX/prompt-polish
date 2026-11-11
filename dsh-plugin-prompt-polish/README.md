@@ -57,7 +57,7 @@ DeepSeek Harness 的**原生插件版**提示词优化器：模型选择器左�
 dsh plugin --profile desktop add dsh-plugin-prompt-polish
 ```
 
-当前版本：`0.1.0`。
+当前版本：`0.1.1`。
 
 ### 从源码安装
 

@@ -32,7 +32,7 @@ Already listed. Open the DSH **Plugins** panel and search for **PromptPolish** o
 dsh plugin --profile desktop add dsh-plugin-prompt-polish
 ```
 
-Package: <https://www.npmjs.com/package/dsh-plugin-prompt-polish> (current `0.1.0`).
+Package: <https://www.npmjs.com/package/dsh-plugin-prompt-polish> (current `0.1.1`).
 
 ### From source
 
